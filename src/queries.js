@@ -39,9 +39,7 @@ export const query5 = await Human.findAll({
 // Get all the animals who don't have a birth year
 export const query6 = await Animal.findAll({
   where: {
-    birthYear: {
-      [Op.not]: null,
-    },
+    birthYear: null,
   },
 });
 
@@ -65,31 +63,54 @@ export const query8 = Human.findAll({
 
 // Continue reading the instructions before you move on!
 
-// Print a directory of humans and their animals
-export async function printHumansAndAnimals() {
-  try {
-    // Assuming you have Sequelize models and associations set up
-    const humans = await Human.findAll({
-      include: Animal, // Include the Animal association
-    });
 
-    // Loop through the humans and their associated animals
-    for (const human of humans) {
-      console.log(`Human: ${human.fname} ${human.lname}`);
-      if (human.Animals.length > 0) {
-        console.log("Animals:");
-        for (const animal of human.Animals) {
-          console.log(`  - ${animal.name}`);
-        }
-      } else {
-        console.log("No associated animals.");
-      }
-      console.log();
+
+export async function printHumansAndAnimals() {
+  const result = [];
+
+  const humans = await Human.findAll({
+    include: {
+      model: Animal,
+      attributes: ['name'], // Include only the 'name' column from the Animal model
+    },
+  });
+
+  for (const human of humans) {
+    for (const animal of human.Animals) {
+      result.push(`Human: ${human.fname} ${human.lname}, Animal: ${animal.name}`);
     }
-  } catch (error) {
-    console.error("Error fetching data:", error);
   }
+
+  return result;
 }
+
+
+
+
+
+
 // Return a Set containing the full names of all humans
 // with animals of the given species.
-export async function getHumansByAnimalSpecies(species) {}
+export async function getHumansByAnimalSpecies(species) {
+  // Assuming you have Sequelize models and associations set up
+  const humans = await Human.findAll({
+    include: {
+      model: Animal,
+      where: {
+        species: species,
+      },
+    },
+  });
+
+  // Create a Set to store unique full names
+  const humanNamesSet = new Set();
+
+  // Loop through the humans and add their full names to the Set
+  for (const human of humans) {
+    const fullName = `${human.fname} ${human.lname}`;
+    humanNamesSet.add(fullName);
+  }
+
+  return humanNamesSet;
+}
+
